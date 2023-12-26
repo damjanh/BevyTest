@@ -1,14 +1,17 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
+use rand::prelude::*;
 
 const PLAYER_SIZE: f32 = 32.0;
 pub const PLAYER_SPEED: f32 = 500.0;
+const NUM_OF_ENEMIES: i8 = 3;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_startup_system(spawn_camera)
         .add_startup_system(spawn_player)
+        .add_startup_system(spawn_enemies)
         .add_system(player_movement)
         .add_system(confine_player_movement)
         .run();
@@ -16,6 +19,9 @@ fn main() {
 
 #[derive(Component)]
 pub struct Player {}
+
+#[derive(Component)]
+pub struct Enemy {}
 
 pub fn spawn_player(
     mut commands: Commands,
@@ -42,6 +48,29 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
         transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
         ..default()
     });
+}
+
+pub fn spawn_enemies(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+    let window = window_query.get_single().unwrap();
+
+    for _ in 0..NUM_OF_ENEMIES {
+        let rand_x = random::<f32>() * window.width();
+        let rand_y = random::<f32>() * window.height();
+
+        commands.spawn((
+            SpriteBundle {
+                transform: Transform::from_xyz(rand_x, rand_y, 0.0)
+                    .with_scale(Vec3::new(2.0, 2.0, 1.0)),
+                texture: asset_server.load("sprites/chilli.png"),
+                ..default()
+            },
+            Enemy {},
+        ));
+    }
 }
 
 pub fn player_movement(
