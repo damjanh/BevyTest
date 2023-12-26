@@ -15,6 +15,7 @@ pub const NUM_OF_PICKUPS: i8 = 3;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .init_resource::<Score>()
         .add_startup_system(spawn_camera)
         .add_startup_system(spawn_player)
         .add_startup_system(spawn_enemies)
@@ -26,6 +27,7 @@ fn main() {
         .add_system(confine_enemy_movement)
         .add_system(enemy_player_collision)
         .add_system(pickup_player_collision)
+        .add_system(update_score)
         .run();
 }
 
@@ -39,6 +41,16 @@ pub struct Enemy {
 
 #[derive(Component)]
 pub struct Pickup {}
+
+#[derive(Resource)]
+pub struct Score {
+    pub value: u32,
+}
+impl Default for Score {
+    fn default() -> Self {
+        Self { value: 0 }
+    }
+}
 
 pub fn spawn_player(
     mut commands: Commands,
@@ -287,6 +299,7 @@ pub fn pickup_player_collision(
     pickup_query: Query<(Entity, &Transform), With<Pickup>>,
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
+    mut score: ResMut<Score>,
 ) {
     if let Ok(player_transform) = player_query.get_single() {
         for (pickup_entity, pickup_transform) in pickup_query.iter() {
@@ -299,11 +312,19 @@ pub fn pickup_player_collision(
 
             // Pseudo collision
             if distance < player_radius + pickup_radius {
+                score.value += 1;
+
                 let sound_effect = asset_server.load("audio/laserLarge_000.ogg");
                 audio.play(sound_effect);
 
                 commands.entity(pickup_entity).despawn();
             }
         }
+    }
+}
+
+pub fn update_score(score: Res<Score>) {
+    if score.is_changed() {
+        println!("Score: {}", score.value.to_string());
     }
 }
