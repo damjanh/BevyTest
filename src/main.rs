@@ -4,6 +4,7 @@ use rand::prelude::*;
 
 pub const PLAYER_SIZE: f32 = 32.0;
 pub const ENEMY_SIZE: f32 = 32.0;
+pub const PICKUP_SIZE: f32 = 32.0;
 
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const ENEMY_SPEED: f32 = 200.0;
@@ -24,6 +25,7 @@ fn main() {
         .add_system(update_enemy_direction)
         .add_system(confine_enemy_movement)
         .add_system(enemy_player_collision)
+        .add_system(pickup_player_collision)
         .run();
 }
 
@@ -274,6 +276,33 @@ pub fn enemy_player_collision(
                 audio.play(sound_effect);
 
                 commands.entity(player_entity).despawn();
+            }
+        }
+    }
+}
+
+pub fn pickup_player_collision(
+    mut commands: Commands,
+    player_query: Query<&Transform, With<Player>>,
+    pickup_query: Query<(Entity, &Transform), With<Pickup>>,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
+) {
+    if let Ok(player_transform) = player_query.get_single() {
+        for (pickup_entity, pickup_transform) in pickup_query.iter() {
+            let distance = player_transform
+                .translation
+                .distance(pickup_transform.translation);
+
+            let player_radius = PLAYER_SIZE / 2.0;
+            let pickup_radius = PICKUP_SIZE / 2.0;
+
+            // Pseudo collision
+            if distance < player_radius + pickup_radius {
+                let sound_effect = asset_server.load("audio/laserLarge_000.ogg");
+                audio.play(sound_effect);
+
+                commands.entity(pickup_entity).despawn();
             }
         }
     }
