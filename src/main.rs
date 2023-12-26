@@ -12,10 +12,13 @@ pub const ENEMY_SPEED: f32 = 200.0;
 pub const NUM_OF_ENEMIES: i8 = 3;
 pub const NUM_OF_PICKUPS: i8 = 3;
 
+pub const PICKUP_SPAWN_TIMEOUT_SECONDS: f32 = 2.0;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .init_resource::<Score>()
+        .init_resource::<PickupSpawnTimer>()
         .add_startup_system(spawn_camera)
         .add_startup_system(spawn_player)
         .add_startup_system(spawn_enemies)
@@ -28,6 +31,8 @@ fn main() {
         .add_system(enemy_player_collision)
         .add_system(pickup_player_collision)
         .add_system(update_score)
+        .add_system(tick_pickup_spawn_timer)
+        .add_system(spawn_pickups_over_time)
         .run();
 }
 
@@ -49,6 +54,18 @@ pub struct Score {
 impl Default for Score {
     fn default() -> Self {
         Self { value: 0 }
+    }
+}
+
+#[derive(Resource)]
+pub struct PickupSpawnTimer {
+    pub timer: Timer,
+}
+impl Default for PickupSpawnTimer {
+    fn default() -> Self {
+        Self {
+            timer: Timer::from_seconds(PICKUP_SPAWN_TIMEOUT_SECONDS, TimerMode::Repeating),
+        }
     }
 }
 
@@ -326,5 +343,32 @@ pub fn pickup_player_collision(
 pub fn update_score(score: Res<Score>) {
     if score.is_changed() {
         println!("Score: {}", score.value.to_string());
+    }
+}
+
+pub fn tick_pickup_spawn_timer(mut pickup_spawn_timer: ResMut<PickupSpawnTimer>, time: Res<Time>) {
+    pickup_spawn_timer.timer.tick(time.delta());
+}
+
+pub fn spawn_pickups_over_time(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+    pickup_spawn_timer: Res<PickupSpawnTimer>,
+) {
+    if pickup_spawn_timer.timer.finished() {
+        let window = window_query.get_single().unwrap();
+        let random_x = random::<f32>() * window.width();
+        let random_y = random::<f32>() * window.height();
+
+        commands.spawn((
+            SpriteBundle {
+                transform: Transform::from_xyz(random_x, random_y, 0.0)
+                    .with_scale(Vec3::new(2.0, 2.0, 1.0)),
+                texture: asset_server.load("sprites/energy_can.png"),
+                ..default()
+            },
+            Pickup {},
+        ));
     }
 }
