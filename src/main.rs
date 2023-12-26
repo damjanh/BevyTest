@@ -5,6 +5,7 @@ use rand::prelude::*;
 const PLAYER_SIZE: f32 = 32.0;
 pub const PLAYER_SPEED: f32 = 500.0;
 const NUM_OF_ENEMIES: i8 = 3;
+const ENEMY_SPEED: f32 = 200.0;
 
 fn main() {
     App::new()
@@ -14,6 +15,7 @@ fn main() {
         .add_startup_system(spawn_enemies)
         .add_system(player_movement)
         .add_system(confine_player_movement)
+        .add_system(enemy_movement)
         .run();
 }
 
@@ -21,7 +23,9 @@ fn main() {
 pub struct Player {}
 
 #[derive(Component)]
-pub struct Enemy {}
+pub struct Enemy {
+    pub direction: Vec2,
+}
 
 pub fn spawn_player(
     mut commands: Commands,
@@ -68,7 +72,9 @@ pub fn spawn_enemies(
                 texture: asset_server.load("sprites/chilli.png"),
                 ..default()
             },
-            Enemy {},
+            Enemy {
+                direction: Vec2::new(random::<f32>(), random::<f32>()).normalize(),
+            },
         ));
     }
 }
@@ -132,5 +138,13 @@ pub fn confine_player_movement(
         }
 
         player_transform.translation = translation;
+    }
+}
+
+pub fn enemy_movement(mut enemy_query: Query<(&mut Transform, &Enemy)>, time: Res<Time>) {
+    for (mut transform, enemy) in enemy_query.iter_mut() {
+        let direction = Vec3::new(enemy.direction.x, enemy.direction.y, 0.0);
+
+        transform.translation += direction * ENEMY_SPEED * time.delta_seconds();
     }
 }
