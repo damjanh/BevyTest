@@ -9,6 +9,7 @@ pub const PLAYER_SPEED: f32 = 500.0;
 pub const ENEMY_SPEED: f32 = 200.0;
 
 pub const NUM_OF_ENEMIES: i8 = 3;
+pub const NUM_OF_PICKUPS: i8 = 3;
 
 fn main() {
     App::new()
@@ -16,6 +17,7 @@ fn main() {
         .add_startup_system(spawn_camera)
         .add_startup_system(spawn_player)
         .add_startup_system(spawn_enemies)
+        .add_startup_system(spawn_pickups)
         .add_system(player_movement)
         .add_system(confine_player_movement)
         .add_system(enemy_movement)
@@ -32,6 +34,9 @@ pub struct Player {}
 pub struct Enemy {
     pub direction: Vec2,
 }
+
+#[derive(Component)]
+pub struct Pickup {}
 
 pub fn spawn_player(
     mut commands: Commands,
@@ -81,6 +86,29 @@ pub fn spawn_enemies(
             Enemy {
                 direction: Vec2::new(random::<f32>(), random::<f32>()).normalize(),
             },
+        ));
+    }
+}
+
+pub fn spawn_pickups(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+    let window = window_query.get_single().unwrap();
+
+    for _ in 0..NUM_OF_PICKUPS {
+        let rand_x = random::<f32>() * window.width();
+        let rand_y = random::<f32>() * window.height();
+
+        commands.spawn((
+            SpriteBundle {
+                transform: Transform::from_xyz(rand_x, rand_y, 0.0)
+                    .with_scale(Vec3::new(2.0, 2.0, 1.0)),
+                texture: asset_server.load("sprites/energy_can.png"),
+                ..default()
+            },
+            Pickup {},
         ));
     }
 }
