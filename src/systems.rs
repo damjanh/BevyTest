@@ -4,6 +4,7 @@ use bevy::window::PrimaryWindow;
 
 use super::events::*;
 use super::AppState;
+use super::game::SimulationState;
 
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
     let window = window_query.get_single().unwrap();
@@ -23,9 +24,10 @@ pub fn exit_game(
     }
 }
 
-pub fn handle_game_over(mut game_over_event_reader: EventReader<GameOver>) {
+pub fn handle_game_over(mut commands: Commands, mut game_over_event_reader: EventReader<GameOver>) {
     for event in game_over_event_reader.iter() {
         println!("Your final score is {}", event.score.to_string());
+        commands.insert_resource(NextState(Some(AppState::GameOver)));
     }
 }
 
@@ -50,6 +52,7 @@ pub fn transition_to_main_menu_state(
     if keyboard_input.just_pressed(KeyCode::M) {
         if app_state.0 != AppState::MainMenu {
             commands.insert_resource(NextState(Some(AppState::MainMenu)));
+            commands.insert_resource(NextState(Some(SimulationState::Paused)));
             println!("Entered AppState: MainMenu");
         }
     }
