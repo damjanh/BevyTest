@@ -4,7 +4,6 @@ use rand::prelude::*;
 
 use super::components::*;
 use super::resources::*;
-
 use super::NUM_OF_PICKUPS;
 
 pub fn spawn_pickups(
@@ -27,6 +26,12 @@ pub fn spawn_pickups(
             },
             Pickup {},
         ));
+    }
+}
+
+pub fn despawn_pickups(mut commands: Commands, pickup_query: Query<Entity, With<Pickup>>) {
+    for pickup_entity in pickup_query.iter() {
+        commands.entity(pickup_entity).despawn();
     }
 }
 
