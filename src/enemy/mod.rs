@@ -1,11 +1,10 @@
 use bevy::prelude::*;
 
-use self::resources::EnemySpawnTimer;
-
 pub mod components;
 pub mod resources;
 mod systems;
 
+use resources::*;
 use systems::*;
 
 pub const ENEMY_SIZE: f32 = 32.0;

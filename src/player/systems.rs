@@ -3,10 +3,12 @@ use bevy::window::PrimaryWindow;
 
 use super::components::*;
 use crate::enemy::components::*;
-use crate::enemy::ENEMY_SIZE;
-use crate::events::GameOver;
 use crate::pickup::components::*;
+
+use crate::enemy::ENEMY_SIZE;
 use crate::pickup::PICKUP_SIZE;
+
+use crate::events::GameOver;
 use crate::score::resources::*;
 
 pub const PLAYER_SIZE: f32 = 32.0;

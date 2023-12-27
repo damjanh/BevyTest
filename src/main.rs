@@ -1,10 +1,9 @@
-pub mod events;
-
 mod pickup;
 mod player;
 mod systems;
 
 pub mod enemy;
+pub mod events;
 pub mod score;
 
 use events::*;
