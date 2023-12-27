@@ -3,8 +3,8 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
 use super::events::*;
-use super::AppState;
 use super::game::SimulationState;
+use super::AppState;
 
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
     let window = window_query.get_single().unwrap();
